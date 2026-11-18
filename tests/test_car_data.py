@@ -26,7 +26,6 @@ def raw_cars():
 
 def test_clean_cars_parses_numeric_fields_and_drops_invalid_targets(raw_cars):
     cleaned = clean_cars(raw_cars)
-
     assert len(cleaned) == 2
     assert cleaned["price"].tolist() == [20000, 15500]
     assert cleaned["mileage"].tolist() == [25000, 40000]
@@ -36,17 +35,13 @@ def test_clean_cars_parses_numeric_fields_and_drops_invalid_targets(raw_cars):
 
 def test_clean_cars_does_not_mutate_source(raw_cars):
     original = raw_cars.copy(deep=True)
-
     clean_cars(raw_cars)
-
     pd.testing.assert_frame_equal(raw_cars, original)
 
 
 def test_validate_raw_cars_rejects_missing_columns(raw_cars):
-    incomplete = raw_cars.drop(columns=["price"])
-
     with pytest.raises(ValueError, match="price"):
-        validate_raw_cars(incomplete)
+        validate_raw_cars(raw_cars.drop(columns=["price"]))
 
 
 def test_validate_raw_cars_rejects_empty_dataframe(raw_cars):
@@ -57,3 +52,14 @@ def test_validate_raw_cars_rejects_empty_dataframe(raw_cars):
 def test_clean_cars_rejects_non_dataframe():
     with pytest.raises(TypeError, match="DataFrame"):
         clean_cars([{"price": 1000}])
+
+
+def test_clean_cars_drops_zero_and_negative_prices(raw_cars):
+    invalid_targets = raw_cars.copy()
+    invalid_targets["price"] = ["$0", "$-100", "$0"]
+    assert clean_cars(invalid_targets).empty
+
+
+def test_clean_cars_accepts_explicit_reference_year(raw_cars):
+    cleaned = clean_cars(raw_cars, reference_year=2025)
+    assert cleaned["car_age"].tolist() == [5, 7]
