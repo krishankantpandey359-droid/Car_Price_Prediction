@@ -1,13 +1,13 @@
 # Used Car Price Prediction
 
-A machine-learning project that explores 4,009 used-car listings and compares Linear Regression with Random Forest Regression.
+A reproducible machine-learning project that explores 4,009 used-car listings. It compares a median-price baseline, Linear Regression, and Random Forest Regression.
 
 ## Dataset
 
 This project uses the public [Used Car Price Prediction Dataset by Taeef Najib on Kaggle](https://www.kaggle.com/datasets/taeefnajib/used-car-price-prediction-dataset).
 
 - File: `used_cars.csv`
-- Shape: 4,009 rows × 12 columns
+- Source shape: 4,009 rows × 12 columns
 - Fields include brand, model, model year, mileage, fuel type, engine, transmission, exterior/interior colour, accident history, clean-title status, and price.
 - The dataset is downloaded at notebook runtime using KaggleHub. It is not copied into this repository.
 
@@ -18,20 +18,41 @@ This project uses the public [Used Car Price Prediction Dataset by Taeef Najib o
 3. Convert price and mileage strings to numeric values.
 4. Create a car-age feature.
 5. Split data into training and test sets (80/20, random state 42).
-6. Fit imputation and one-hot encoding only on training data through scikit-learn pipelines.
+6. Fit imputation and one-hot encoding inside scikit-learn pipelines. Imputers are fitted on each training partition, including each cross-validation fold.
 7. Train Linear Regression and Random Forest Regressor models.
-8. Compare MAE, RMSE and R², then inspect predictions and feature importance.
+8. Compare the models with a median-price baseline using shuffled five-fold cross-validation.
+9. Evaluate MAE, RMSE and R², then inspect predictions and feature importance.
 
-## Recorded baseline results
+## Saved single-split baseline results
 
-These values are from the notebook's previously saved run. They are a baseline, not a guarantee of performance on a fresh run.
+The following values are retained from the notebook's earlier saved 80/20 run. They are a baseline, not a guarantee of performance on a fresh run.
 
 | Model | MAE | RMSE | R² |
 |---|---:|---:|---:|
 | Linear Regression | 25,811.27 | 137,184.62 | 0.0793 |
 | Random Forest | 19,010.81 | 134,779.84 | 0.1113 |
 
-Random Forest performed better in the saved run, but an R² of 0.1113 indicates weak predictive performance. The model should be treated as an exploratory baseline, not a reliable pricing tool.
+Random Forest performed better in this saved run, but an R² of 0.1113 indicates weak predictive performance. Do not treat this model as a reliable pricing tool.
+
+## Cross-validation
+
+The notebook runs a five-fold comparison of:
+- Median-price baseline
+- Linear Regression
+- Random Forest
+
+The workflow prints the fold-averaged MAE, RMSE and R² in the GitHub Actions log. It also uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated result table and charts can be inspected. Cross-validation results are not hard-coded here because they must come from a fresh run.
+
+The folds are shuffled random splits with a fixed seed. They estimate performance on similar records from the same source, not on a different market, later time period, or independent dataset.
+
+## Data validation tests
+
+The reusable functions in `src/car_data.py` are tested for:
+- Required-column and empty-data validation
+- Price and mileage parsing
+- Removal of rows with invalid target prices
+- Source-data immutability
+- Invalid input types
 
 ## Technologies
 
@@ -41,6 +62,7 @@ Random Forest performed better in the saved run, but an R² of 0.1113 indicates 
 - scikit-learn
 - KaggleHub
 - Jupyter / Google Colab
+- pytest and GitHub Actions
 
 ## Run locally
 
@@ -49,19 +71,29 @@ Random Forest performed better in the saved run, but an R² of 0.1113 indicates 
 
    `pip install -r requirements.txt`
 
-3. Open `CodeAlpha_Car_Price_Prediction.ipynb` in Jupyter.
-4. Run the notebook. Outside Colab, KaggleHub downloads the public dataset automatically.
+3. Run the tests:
+
+   `python -m pytest -q`
+
+4. Open `CodeAlpha_Car_Price_Prediction.ipynb` in Jupyter and run all cells. Outside Colab, KaggleHub downloads the public dataset automatically.
 
 In Google Colab, the notebook uses the upload widget. To use a local copy in another environment, set `CAR_DATASET_PATH` to the CSV path before starting Jupyter.
 
 ## Automated verification
 
-GitHub Actions validates the notebook structure, installs dependencies, downloads the public dataset through KaggleHub, and executes all notebook code cells.
+GitHub Actions:
+- Installs the declared dependencies
+- Runs unit tests for reusable data validation
+- Validates notebook structure
+- Downloads the public dataset through KaggleHub
+- Executes every notebook code cell
+- Prints the cross-validation comparison
+- Uploads the executed notebook and results as a workflow artifact
 
 ## Limitations and next improvements
 
-- The saved evaluation uses one random 80/20 split. Add cross-validation and compare results across folds.
-- The target contains extreme high-price values. Inspect outliers and consider robust metrics or a log-transformed target without blindly removing valid luxury-car records.
-- Compare against a median-price baseline.
-- Evaluate models on a genuinely unseen dataset before making practical pricing claims.
-- Consolidate repeated actual-versus-predicted plots.
+- The saved single-split model scores are weak. Cross-validation results must be reviewed before selecting a final model.
+- The target contains extreme high-price values. Inspect their validity and consider robust metrics or a log-transformed target without blindly removing valid luxury-car records.
+- Compare stronger tree-based models with the same folds and preprocessing.
+- Evaluate on a genuinely independent dataset or later time period before making practical pricing claims.
+- Remove duplicate actual-versus-predicted visualizations after the final analysis is selected.
