@@ -66,6 +66,8 @@ def test_clean_cars_accepts_explicit_reference_year(raw_cars):
 
 
 def test_clean_cars_drops_non_finite_price_and_model_year(raw_cars):
+    raw_cars["price"] = raw_cars["price"].astype(object)
+    raw_cars["model_year"] = raw_cars["model_year"].astype(float)
     raw_cars.loc[0, "price"] = float("inf")
     raw_cars.loc[1, "model_year"] = float("-inf")
     cleaned = clean_cars(raw_cars)
