@@ -24,8 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Test reusable data validation helpers
-        run: |
-          python -m pytest -q
+        run: python -m pytest -q
       - name: Validate notebook structure
         run: |
           python - <<'PY'
@@ -63,13 +62,13 @@ jobs:
               raise AssertionError("Cross-validation results cell was not found")
           rendered = []
           for output in cv_cells[0].get("outputs", []):
-              text = output.get("data", {}).get("text/plain")
-              if text:
-                  rendered.append("".join(text) if isinstance(text, list) else str(text))
+              value = output.get("data", {}).get("text/plain")
+              if value:
+                  rendered.append("".join(value) if isinstance(value, list) else str(value))
           if not rendered:
               raise AssertionError("Cross-validation results were not rendered")
           print("CROSS_VALIDATION_RESULTS_START")
-          print("\\n".join(rendered))
+          print("\n".join(rendered))
           print("CROSS_VALIDATION_RESULTS_END")
           PY
       - name: Upload executed notebook and metrics
