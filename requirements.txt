@@ -7,3 +7,4 @@ scikit-learn>=1.4
 jupyter>=1.0
 nbconvert>=7.16
 ipykernel>=6.29
+pytest>=8.0
