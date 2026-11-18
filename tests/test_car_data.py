@@ -1,0 +1,59 @@
+import pandas as pd
+import pytest
+
+from src.car_data import clean_cars, validate_raw_cars
+
+
+@pytest.fixture
+def raw_cars():
+    return pd.DataFrame(
+        {
+            "brand": ["Toyota", "Honda", "Ford"],
+            "model": ["Camry", "Civic", "Focus"],
+            "model_year": [2020, 2018, 2016],
+            "milage": ["25,000 mi", "40,000 mi", "18,500 mi"],
+            "fuel_type": ["Gasoline", "Gasoline", "Diesel"],
+            "engine": ["2.5L", "2.0L", "1.5L"],
+            "transmission": ["Automatic", "Manual", "Automatic"],
+            "ext_col": ["White", "Black", "Blue"],
+            "int_col": ["Black", "Gray", "Black"],
+            "accident": ["None reported", "None reported", "At least 1 accident"],
+            "clean_title": ["Yes", "Yes", "Yes"],
+            "price": ["$20,000", "$15,500", "invalid"],
+        }
+    )
+
+
+def test_clean_cars_parses_numeric_fields_and_drops_invalid_targets(raw_cars):
+    cleaned = clean_cars(raw_cars)
+
+    assert len(cleaned) == 2
+    assert cleaned["price"].tolist() == [20000, 15500]
+    assert cleaned["mileage"].tolist() == [25000, 40000]
+    assert cleaned["car_age"].tolist() == [6, 8]
+    assert cleaned["price"].gt(0).all()
+
+
+def test_clean_cars_does_not_mutate_source(raw_cars):
+    original = raw_cars.copy(deep=True)
+
+    clean_cars(raw_cars)
+
+    pd.testing.assert_frame_equal(raw_cars, original)
+
+
+def test_validate_raw_cars_rejects_missing_columns(raw_cars):
+    incomplete = raw_cars.drop(columns=["price"])
+
+    with pytest.raises(ValueError, match="price"):
+        validate_raw_cars(incomplete)
+
+
+def test_validate_raw_cars_rejects_empty_dataframe(raw_cars):
+    with pytest.raises(ValueError, match="empty"):
+        validate_raw_cars(raw_cars.iloc[0:0])
+
+
+def test_clean_cars_rejects_non_dataframe():
+    with pytest.raises(TypeError, match="DataFrame"):
+        clean_cars([{"price": 1000}])
