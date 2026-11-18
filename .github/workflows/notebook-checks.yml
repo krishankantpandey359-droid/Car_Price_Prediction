@@ -68,8 +68,36 @@ jobs:
           if not rendered:
               raise AssertionError("Cross-validation results were not rendered")
           print("CROSS_VALIDATION_RESULTS_START")
-          print("\n".join(rendered))
+          print("\\n".join(rendered))
           print("CROSS_VALIDATION_RESULTS_END")
+
+          summary_cells = [
+              cell for cell in code_cells
+              if "Untouched holdout MAE" in "".join(cell.get("source", []))
+          ]
+          if not summary_cells:
+              raise AssertionError("Final holdout metrics cell was not found")
+          summary_text = []
+          for output in summary_cells[0].get("outputs", []):
+              if output.output_type == "stream":
+                  summary_text.append(output.text)
+              elif output.output_type == "execute_result":
+                  value = output.get("data", {}).get("text/plain")
+                  if value:
+                      summary_text.append("".join(value) if isinstance(value, list) else str(value))
+          summary = "\\n".join(summary_text)
+          required_metrics = [
+              "Best model selected by training-only CV MAE:",
+              "Untouched holdout MAE:",
+              "Untouched holdout RMSE:",
+              "Untouched holdout R2:",
+          ]
+          missing = [metric for metric in required_metrics if metric not in summary]
+          if missing:
+              raise AssertionError(f"Missing final holdout metrics: {missing}")
+          print("FINAL_HOLDOUT_RESULTS_START")
+          print(summary)
+          print("FINAL_HOLDOUT_RESULTS_END")
           PY
       - name: Upload executed notebook and metrics
         uses: actions/upload-artifact@v4
