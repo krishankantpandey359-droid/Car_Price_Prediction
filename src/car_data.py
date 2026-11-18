@@ -1,6 +1,7 @@
 """Reusable validation and cleaning helpers for the used-car dataset."""
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 REQUIRED_COLUMNS = {
@@ -35,6 +36,9 @@ def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
     )
     cleaned["model_year"] = pd.to_numeric(cleaned["model_year"], errors="coerce")
     cleaned = cleaned.dropna(subset=["price", "model_year"]).copy()
-    cleaned = cleaned.loc[(cleaned["price"] > 0) & (cleaned["model_year"] > 0)].copy()
+    finite_targets = np.isfinite(cleaned["price"]) & np.isfinite(cleaned["model_year"])
+    cleaned = cleaned.loc[
+        finite_targets & (cleaned["price"] > 0) & (cleaned["model_year"] > 0)
+    ].copy()
     cleaned["car_age"] = (reference_year - cleaned["model_year"]).clip(lower=0)
     return cleaned.reset_index(drop=True)
