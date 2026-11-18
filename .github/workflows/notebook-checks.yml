@@ -23,6 +23,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Test reusable data validation helpers
+        run: |
+          python -m pytest -q
       - name: Validate notebook structure
         run: |
           python - <<'PY'
@@ -40,11 +43,39 @@ jobs:
           python - <<'PY'
           import nbformat
           from pathlib import Path
+
           path = Path("/tmp/car-price-notebook/executed.ipynb")
           nb = nbformat.read(path, as_version=4)
           code_cells = [c for c in nb.cells if c.cell_type == "code"]
-          failed = [i for i, c in enumerate(code_cells) if any(o.output_type == "error" for o in c.get("outputs", []))]
+          failed = [
+              i for i, c in enumerate(code_cells)
+              if any(o.output_type == "error" for o in c.get("outputs", []))
+          ]
           assert not failed, f"Notebook execution errors in code cells: {failed}"
           assert all(c.get("execution_count") is not None for c in code_cells), "Some code cells did not execute"
           print(f"Executed {len(code_cells)} code cells successfully")
+
+          cv_cells = [
+              c for c in code_cells
+              if "cv_comparison" in "".join(c.get("source", []))
+          ]
+          if not cv_cells:
+              raise AssertionError("Cross-validation results cell was not found")
+          rendered = []
+          for output in cv_cells[0].get("outputs", []):
+              text = output.get("data", {}).get("text/plain")
+              if text:
+                  rendered.append("".join(text) if isinstance(text, list) else str(text))
+          if not rendered:
+              raise AssertionError("Cross-validation results were not rendered")
+          print("CROSS_VALIDATION_RESULTS_START")
+          print("\\n".join(rendered))
+          print("CROSS_VALIDATION_RESULTS_END")
           PY
+      - name: Upload executed notebook and metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: car-price-executed-notebook
+          path: /tmp/car-price-notebook/executed.ipynb
+          if-no-files-found: error
+          retention-days: 14
