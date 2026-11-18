@@ -63,3 +63,10 @@ def test_clean_cars_drops_zero_and_negative_prices(raw_cars):
 def test_clean_cars_accepts_explicit_reference_year(raw_cars):
     cleaned = clean_cars(raw_cars, reference_year=2025)
     assert cleaned["car_age"].tolist() == [5, 7]
+
+
+def test_clean_cars_drops_non_finite_price_and_model_year(raw_cars):
+    raw_cars.loc[0, "price"] = float("inf")
+    raw_cars.loc[1, "model_year"] = float("-inf")
+    cleaned = clean_cars(raw_cars)
+    assert cleaned.empty
