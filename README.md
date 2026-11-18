@@ -1,6 +1,6 @@
 # Used Car Price Prediction
 
-A reproducible machine-learning project that explores 4,009 used-car listings. It compares a median-price baseline, Linear Regression, and Random Forest Regression.
+A reproducible machine-learning project that explores 4,009 used-car listings. It compares a median-price baseline, Linear Regression, Random Forest, Extra Trees, and log-target tree models.
 
 ## Dataset
 
@@ -19,9 +19,10 @@ This project uses the public [Used Car Price Prediction Dataset by Taeef Najib o
 4. Create a car-age feature.
 5. Split data into training and test sets (80/20, random state 42).
 6. Fit imputation and one-hot encoding inside scikit-learn pipelines. Imputers are fitted on each training partition, including each cross-validation fold.
-7. Train Linear Regression and Random Forest Regressor models.
-8. Compare the models with a median-price baseline using shuffled five-fold cross-validation.
-9. Evaluate MAE, RMSE and R², then inspect predictions and feature importance.
+7. Define a median-price baseline, Linear Regression, Random Forest, and Extra Trees candidates, including log-target tree variants.
+8. Compare candidates using shuffled five-fold cross-validation on the training split only.
+9. Select a candidate using training-only CV MAE, then evaluate it once on the untouched 20% holdout set.
+10. Report MAE, RMSE and R² and inspect residuals, predictions and feature importance.
 
 ## Saved single-split baseline results
 
@@ -36,23 +37,27 @@ Random Forest performed better in this saved run, but an R² of 0.1113 indicates
 
 ## Cross-validation
 
-The notebook runs a five-fold comparison of:
+The notebook runs a five-fold comparison on the training split of:
 - Median-price baseline
 - Linear Regression
 - Random Forest
+- Extra Trees
+- Random Forest with a log-transformed target
+- Extra Trees with a log-transformed target
 
-The workflow prints the fold-averaged MAE, RMSE and R² in the GitHub Actions log. It also uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated result table and charts can be inspected. Cross-validation results are not hard-coded here because they must come from a fresh run.
+The workflow prints the fold-averaged MAE, RMSE and R² in the GitHub Actions log. It also uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated result table and charts can be inspected. Cross-validation results are not hard-coded here because they must come from a fresh run. Model selection uses only the training split. The holdout set is not used to choose the model.
 
-The folds are shuffled random splits with a fixed seed. They estimate performance on similar records from the same source, not on a different market, later time period, or independent dataset.
+The folds are shuffled random splits with a fixed seed and use only the 80% training split. The 20% holdout set is kept out of model selection and used once for final evaluation. These results estimate performance on similar records from the same source, not on a different market, later time period, or independent dataset.
 
 ## Data validation tests
 
 The reusable functions in `src/car_data.py` are tested for:
 - Required-column and empty-data validation
 - Price and mileage parsing
-- Removal of rows with invalid target prices
+- Removal of invalid, zero and negative target prices
 - Source-data immutability
 - Invalid input types
+- Explicit reference-year handling for car age
 
 ## Technologies
 
@@ -92,8 +97,8 @@ GitHub Actions:
 
 ## Limitations and next improvements
 
-- The saved single-split model scores are weak. Cross-validation results must be reviewed before selecting a final model.
-- The target contains extreme high-price values. Inspect their validity and consider robust metrics or a log-transformed target without blindly removing valid luxury-car records.
-- Compare stronger tree-based models with the same folds and preprocessing.
+- Earlier saved single-split scores are weak and remain historical baseline values only.
+- The target contains extreme high-price values. Inspect their validity and compare original-target and log-target models without blindly removing valid luxury-car records.
+- Compare candidates using the same folds and preprocessing, then validate the selected model on an independent dataset or later time period.
 - Evaluate on a genuinely independent dataset or later time period before making practical pricing claims.
 - Remove duplicate actual-versus-predicted visualizations after the final analysis is selected.
