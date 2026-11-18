@@ -45,7 +45,20 @@ The notebook runs a five-fold comparison on the training split of:
 - Random Forest with a log-transformed target
 - Extra Trees with a log-transformed target
 
-The workflow prints the fold-averaged MAE, RMSE and R² in the GitHub Actions log. It also uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated result table and charts can be inspected. Cross-validation results are not hard-coded here because they must come from a fresh run. Model selection uses only the training split. The holdout set is not used to choose the model.
+Latest verified CI cross-validation results from the 4,009-row source dataset (80% training split):
+
+| Model | CV MAE | CV RMSE | CV R² |
+|---|---:|---:|---:|
+| Extra Trees | 12,572.48 | 27,415.14 | 0.706 |
+| Extra Trees (log target) | 13,301.82 | 31,957.48 | 0.600 |
+| Random Forest | 13,437.20 | 28,104.63 | 0.692 |
+| Random Forest (log target) | 14,184.00 | 32,401.46 | 0.593 |
+| Linear Regression | 18,887.23 | 34,829.78 | 0.520 |
+| Median baseline | 25,641.25 | 51,620.50 | -0.054 |
+
+Extra Trees has the lowest training-only cross-validation MAE. The notebook then fits that candidate on the full training split and evaluates it once on the untouched 20% holdout. The previously verified holdout R² was 0.1015, which is substantially lower than the cross-validation R². This gap indicates weak generalization and means the project is not yet a reliable car-pricing model. Re-run CI to refresh all metrics after code changes.
+
+The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected.
 
 The folds are shuffled random splits with a fixed seed and use only the 80% training split. The 20% holdout set is kept out of model selection and used once for final evaluation. These results estimate performance on similar records from the same source, not on a different market, later time period, or independent dataset.
 
@@ -101,4 +114,4 @@ GitHub Actions:
 - The target contains extreme high-price values. Inspect their validity and compare original-target and log-target models without blindly removing valid luxury-car records.
 - Compare candidates using the same folds and preprocessing, then validate the selected model on an independent dataset or later time period.
 - Evaluate on a genuinely independent dataset or later time period before making practical pricing claims.
-- Remove duplicate actual-versus-predicted visualizations after the final analysis is selected.
+- Investigate the cross-validation to holdout performance gap, using a chronological or external validation set where available.
