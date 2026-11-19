@@ -1,0 +1,108 @@
+name: Car price prediction checks
+
+on:
+  push:
+    branches: [main, "audit/car-price-prediction-fixes"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notebook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Test reusable data validation helpers
+        run: python -m pytest -q
+      - name: Validate notebook structure
+        run: |
+          python - <<'PY'
+          import nbformat
+          notebook = nbformat.read("CodeAlpha_Car_Price_Prediction.ipynb", as_version=4)
+          nbformat.validate(notebook)
+          assert len(notebook.cells) >= 20
+          print(f"Notebook structure valid: {len(notebook.cells)} cells")
+          PY
+      - name: Execute notebook with public dataset
+        env:
+          MPLBACKEND: Agg
+        run: |
+          jupyter nbconvert --to notebook --execute CodeAlpha_Car_Price_Prediction.ipynb --output executed.ipynb --output-dir /tmp/car-price-notebook --ExecutePreprocessor.timeout=1200
+          python - <<'PY'
+          import nbformat
+          from pathlib import Path
+
+          path = Path("/tmp/car-price-notebook/executed.ipynb")
+          nb = nbformat.read(path, as_version=4)
+          code_cells = [c for c in nb.cells if c.cell_type == "code"]
+          failed = [
+              i for i, c in enumerate(code_cells)
+              if any(o.output_type == "error" for o in c.get("outputs", []))
+          ]
+          assert not failed, f"Notebook execution errors in code cells: {failed}"
+          assert all(c.get("execution_count") is not None for c in code_cells), "Some code cells did not execute"
+          print(f"Executed {len(code_cells)} code cells successfully")
+
+          cv_cells = [
+              c for c in code_cells
+              if "cv_comparison" in "".join(c.get("source", []))
+          ]
+          if not cv_cells:
+              raise AssertionError("Cross-validation results cell was not found")
+          rendered = []
+          for output in cv_cells[0].get("outputs", []):
+              value = output.get("data", {}).get("text/plain")
+              if value:
+                  rendered.append("".join(value) if isinstance(value, list) else str(value))
+          if not rendered:
+              raise AssertionError("Cross-validation results were not rendered")
+          print("CROSS_VALIDATION_RESULTS_START")
+          print("\\n".join(rendered))
+          print("CROSS_VALIDATION_RESULTS_END")
+
+          summary_cells = [
+              cell for cell in code_cells
+              if "Untouched holdout MAE" in "".join(cell.get("source", []))
+          ]
+          if not summary_cells:
+              raise AssertionError("Final holdout metrics cell was not found")
+          summary_text = []
+          for output in summary_cells[0].get("outputs", []):
+              if output.output_type == "stream":
+                  summary_text.append(output.text)
+              elif output.output_type == "execute_result":
+                  value = output.get("data", {}).get("text/plain")
+                  if value:
+                      summary_text.append("".join(value) if isinstance(value, list) else str(value))
+          summary = "\\n".join(summary_text)
+          required_metrics = [
+              "Best model selected by training-only CV MAE:",
+              "Untouched holdout MAE:",
+              "Untouched holdout RMSE:",
+              "Untouched holdout R2:",
+          ]
+          missing = [metric for metric in required_metrics if metric not in summary]
+          if missing:
+              raise AssertionError(f"Missing final holdout metrics: {missing}")
+          print("FINAL_HOLDOUT_RESULTS_START")
+          print(summary)
+          print("FINAL_HOLDOUT_RESULTS_END")
+          PY
+      - name: Upload executed notebook and metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: car-price-executed-notebook
+          path: /tmp/car-price-notebook/executed.ipynb
+          if-no-files-found: error
+          retention-days: 14
