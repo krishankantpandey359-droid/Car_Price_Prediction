@@ -37,30 +37,30 @@ Random Forest performed better in this saved run, but an R² of 0.1113 indicates
 
 ## Cross-validation
 
-The notebook runs a five-fold comparison on the training split of:
-- Median-price baseline
-- Linear Regression
-- Random Forest
-- Extra Trees
-- Random Forest with a log-transformed target
-- Extra Trees with a log-transformed target
+The notebook compares a median-price baseline, Linear Regression, Random Forest, Extra Trees, and log-target tree variants using five-fold validation on the training split. The 20% holdout is kept separate from model selection. Price-quantile stratification is used for both the initial holdout split and the training-only folds so that low-, middle-, and high-priced listings are represented.
 
-Latest verified CI cross-validation results from the 4,009-row source dataset (80% training split):
+Latest verified CI results from the 4,009-row source dataset:
 
 | Model | CV MAE | CV RMSE | CV R² |
 |---|---:|---:|---:|
-| Extra Trees | 12,572.48 | 27,415.14 | 0.706 |
-| Extra Trees (log target) | 13,301.82 | 31,957.48 | 0.600 |
-| Random Forest | 13,437.20 | 28,104.63 | 0.692 |
-| Random Forest (log target) | 14,184.00 | 32,401.46 | 0.593 |
-| Linear Regression | 18,887.23 | 34,829.78 | 0.520 |
-| Median baseline | 25,641.25 | 51,620.50 | -0.054 |
+| Extra Trees | 12,977.97 | 35,724.21 | 0.605 |
+| Random Forest | 13,766.35 | 35,919.93 | 0.596 |
+| Extra Trees (log target) | 13,369.42 | 37,750.98 | 0.559 |
+| Random Forest (log target) | 14,301.07 | 38,991.46 | 0.527 |
+| Linear Regression | 19,429.97 | 41,780.55 | 0.449 |
+| Median baseline | 25,726.46 | 57,059.37 | -0.052 |
 
-Extra Trees has the lowest training-only cross-validation MAE. The notebook then fits that candidate on the full training split and evaluates it once on the untouched 20% holdout. The previously verified holdout R² was 0.1015, which is substantially lower than the cross-validation R². This gap indicates weak generalization and means the project is not yet a reliable car-pricing model. Re-run CI to refresh all metrics after code changes.
+Extra Trees has the lowest training-only cross-validation MAE. Its untouched 20% holdout results are:
 
-The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected.
+- **Holdout MAE:** 18,788.74
+- **Holdout RMSE:** 125,581.22
+- **Holdout R²:** 0.1202
 
-The folds are shuffled random splits with a fixed seed and use only the 80% training split. The 20% holdout set is kept out of model selection and used once for final evaluation. These results estimate performance on similar records from the same source, not on a different market, later time period, or independent dataset.
+The large CV-to-holdout gap, especially in RMSE and R², indicates weak generalization and sensitivity to the high-price tail. The model is exploratory and is not reliable enough for real vehicle valuation. A later-period or independent-market test is still required.
+
+The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected. The reported figures above were extracted from the successful workflow artifact for commit `7ff776aa43b9163902a1db9e906a2b8bbc929535`.
+
+The folds are shuffled random splits with a fixed seed and use only the 80% training split. This estimates performance on similar records from the same source. It does not establish performance on a different market, later time period, or independent dataset.
 
 ## Data validation tests
 
