@@ -33,7 +33,7 @@ def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
     )
     cleaned["mileage"] = pd.to_numeric(
         cleaned["mileage"].astype(str).str.replace(",", "", regex=False)
-        .str.extract(r"(\d+(?:\.\d+)?)", expand=False), errors="coerce"
+        .str.extract(r"([-+]?\d+(?:\.\d+)?)", expand=False), errors="coerce"
     )
     cleaned["model_year"] = pd.to_numeric(cleaned["model_year"], errors="coerce")
 
