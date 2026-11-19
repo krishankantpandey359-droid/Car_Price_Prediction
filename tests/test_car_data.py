@@ -85,7 +85,7 @@ def test_clean_cars_rejects_fractional_model_years(raw_cars):
     raw_cars["model_year"] = raw_cars["model_year"].astype(float)
     raw_cars.loc[0, "model_year"] = 2020.5
     cleaned = clean_cars(raw_cars)
-    assert cleaned["model_year"].tolist() == [2018, 2016]
+    assert cleaned["model_year"].tolist() == [2018.0, 2016.0]
 
 
 def test_clean_cars_rejects_boolean_reference_year(raw_cars):
