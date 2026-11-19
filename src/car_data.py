@@ -21,10 +21,11 @@ def validate_raw_cars(frame: pd.DataFrame) -> None:
 
 
 def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
-    """Return a cleaned copy; never mutate the caller's source dataframe."""
+    """Return a cleaned copy, preserving rows with missing predictors for imputation."""
     validate_raw_cars(frame)
     if not isinstance(reference_year, int) or reference_year < 1900:
         raise ValueError("reference_year must be an integer of at least 1900.")
+
     cleaned = frame.copy(deep=True).rename(columns={"milage": "mileage"})
     cleaned["price"] = pd.to_numeric(
         cleaned["price"].astype(str).str.replace("$", "", regex=False)
@@ -32,13 +33,22 @@ def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
     )
     cleaned["mileage"] = pd.to_numeric(
         cleaned["mileage"].astype(str).str.replace(",", "", regex=False)
-        .str.extract(r"(\d+(?:\.\d+)?)", expand=False), errors="coerce"
+        .str.extract(r"(\\d+(?:\\.\\d+)?)", expand=False), errors="coerce"
     )
     cleaned["model_year"] = pd.to_numeric(cleaned["model_year"], errors="coerce")
-    cleaned = cleaned.dropna(subset=["price", "model_year"]).copy()
-    finite_targets = np.isfinite(cleaned["price"]) & np.isfinite(cleaned["model_year"])
-    cleaned = cleaned.loc[
-        finite_targets & (cleaned["price"] > 0) & (cleaned["model_year"] > 0)
-    ].copy()
-    cleaned["car_age"] = (reference_year - cleaned["model_year"]).clip(lower=0)
+
+    valid_price = np.isfinite(cleaned["price"]) & (cleaned["price"] > 0)
+    valid_year = (
+        np.isfinite(cleaned["model_year"])
+        & (cleaned["model_year"] >= 1886)
+        & (cleaned["model_year"] <= reference_year)
+    )
+    cleaned = cleaned.loc[valid_price & valid_year].copy()
+
+    # Missing mileage remains missing for train-only median imputation.
+    # Impossible negative or non-finite values are treated as missing predictors.
+    mileage_finite = np.isfinite(cleaned["mileage"])
+    cleaned.loc[~mileage_finite | (cleaned["mileage"] < 0), "mileage"] = np.nan
+
+    cleaned["car_age"] = reference_year - cleaned["model_year"]
     return cleaned.reset_index(drop=True)
