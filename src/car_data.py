@@ -15,6 +15,9 @@ def validate_raw_cars(frame: pd.DataFrame) -> None:
         raise TypeError("Expected a pandas DataFrame.")
     if frame.empty:
         raise ValueError("The car dataset is empty.")
+    if frame.columns.has_duplicates:
+        duplicates = frame.columns[frame.columns.duplicated()].unique().tolist()
+        raise ValueError(f"Car dataset contains duplicate column names: {duplicates}")
     missing = REQUIRED_COLUMNS.difference(frame.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
