@@ -73,7 +73,7 @@ def clean_cars_with_audit(
     )
     parsed_mileage = pd.to_numeric(
         frame["milage"].astype(str).str.replace(",", "", regex=False)
-        .str.extract(r"([-+]?\\d+(?:\\.\\d+)?)", expand=False),
+        .str.extract(r"([-+]?\d+(?:\.\d+)?)", expand=False),
         errors="coerce",
     )
     invalid_mileage = (
