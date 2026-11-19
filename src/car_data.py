@@ -23,7 +23,7 @@ def validate_raw_cars(frame: pd.DataFrame) -> None:
 def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
     """Return a cleaned copy, preserving rows with missing predictors for imputation."""
     validate_raw_cars(frame)
-    if not isinstance(reference_year, int) or reference_year < 1900:
+    if isinstance(reference_year, bool) or not isinstance(reference_year, int) or reference_year < 1900:
         raise ValueError("reference_year must be an integer of at least 1900.")
 
     cleaned = frame.copy(deep=True).rename(columns={"milage": "mileage"})
@@ -42,6 +42,7 @@ def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
         np.isfinite(cleaned["model_year"])
         & (cleaned["model_year"] >= 1886)
         & (cleaned["model_year"] <= reference_year)
+        & (cleaned["model_year"] % 1 == 0)
     )
     cleaned = cleaned.loc[valid_price & valid_year].copy()
 
