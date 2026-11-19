@@ -1,0 +1,52 @@
+name: Car price prediction CI
+
+on:
+  push:
+    branches: ["main", "audit/**"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pandas numpy matplotlib seaborn scikit-learn nbformat pytest
+      - name: Validate notebook and run tests
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python - <<'PY'
+          import ast
+          import nbformat
+          from pathlib import Path
+
+          path = Path("CodeAlpha_Car_Price_Prediction.ipynb")
+          notebook = nbformat.read(path, as_version=4)
+          nbformat.validate(notebook)
+          code_cells = 0
+          for index, cell in enumerate(notebook.cells):
+              if cell.cell_type != "code":
+                  continue
+              code_cells += 1
+              lines = [
+                  line for line in cell.source.splitlines()
+                  if not line.lstrip().startswith(("%", "!"))
+              ]
+              source = "\n".join(lines)
+              if source.strip():
+                  ast.parse(source)
+          if code_cells < 20:
+              raise SystemExit(f"Expected a substantial notebook, found {code_cells} code cells.")
+          print(f"Notebook structure and syntax passed ({code_cells} code cells).")
+          PY
+          python -m pytest -q
