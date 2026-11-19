@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from src.car_data import clean_cars, validate_raw_cars
+from src.car_data import clean_cars, clean_cars_with_audit, validate_raw_cars
 
 
 @pytest.fixture
@@ -81,9 +81,6 @@ def test_clean_cars_marks_negative_and_non_finite_mileage_missing(raw_cars):
     assert cleaned["mileage"].isna().all()
 
 
-from src.car_data import clean_cars_with_audit
-
-
 def test_clean_cars_with_audit_reports_row_retention_and_missing_predictors(raw_cars):
     raw_cars.loc[0, "milage"] = "unknown"
     cleaned, audit = clean_cars_with_audit(raw_cars, reference_year=2026)
@@ -117,3 +114,18 @@ def test_clean_cars_with_audit_counts_negative_and_nonfinite_mileage(raw_cars):
     assert audit["dropped_invalid_target_rows"] == 1
     assert audit["input_rows"] == 3
 
+
+
+
+def test_validate_raw_cars_rejects_duplicate_column_names(raw_cars):
+    raw_cars.columns = list(raw_cars.columns[:-1]) + ["brand"]
+    with pytest.raises(ValueError, match="duplicate column names"):
+        validate_raw_cars(raw_cars)
+
+
+def test_clean_cars_with_audit_reports_duplicate_source_rows_separately(raw_cars):
+    duplicated = pd.concat([raw_cars, raw_cars.iloc[[0]]], ignore_index=True)
+    cleaned, audit = clean_cars_with_audit(duplicated, reference_year=2026)
+    assert audit["input_rows"] == 4
+    assert audit["retained_rows"] == 3
+    assert len(cleaned) == 3
