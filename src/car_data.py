@@ -42,6 +42,7 @@ def clean_cars(frame: pd.DataFrame, reference_year: int = 2026) -> pd.DataFrame:
         np.isfinite(cleaned["model_year"])
         & (cleaned["model_year"] >= 1886)
         & (cleaned["model_year"] <= reference_year)
+        & (cleaned["model_year"] % 1 == 0)
     )
     cleaned = cleaned.loc[valid_price & valid_year].copy()
 
