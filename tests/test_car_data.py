@@ -93,3 +93,9 @@ def test_clean_cars_with_audit_reports_row_retention_and_missing_predictors(raw_
     assert audit["dropped_invalid_target_rows"] == 1
     assert audit["retained_rows_with_missing_or_invalid_mileage"] == 1
     assert audit["row_retention_percent"] == pytest.approx(66.67)
+
+
+@pytest.mark.parametrize("reference_year", [True, False, 2026.0, "2026", 1899])
+def test_clean_cars_rejects_invalid_reference_year(raw_cars, reference_year):
+    with pytest.raises(ValueError, match="reference_year must be an integer"):
+        clean_cars(raw_cars, reference_year=reference_year)
