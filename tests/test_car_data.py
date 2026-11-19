@@ -72,3 +72,10 @@ def test_clean_cars_drops_non_finite_price_and_model_year(raw_cars):
     raw_cars.loc[1, "model_year"] = float("-inf")
     cleaned = clean_cars(raw_cars)
     assert cleaned.empty
+
+
+def test_clean_cars_marks_negative_and_non_finite_mileage_missing(raw_cars):
+    raw_cars.loc[0, "milage"] = "-120 mi"
+    raw_cars.loc[1, "milage"] = "inf"
+    cleaned = clean_cars(raw_cars)
+    assert cleaned["mileage"].isna().all()
