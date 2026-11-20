@@ -58,6 +58,23 @@ Extra Trees has the lowest training-only cross-validation MAE. Its untouched 20%
 
 The large CV-to-holdout gap, especially in RMSE and R², indicates weak generalization and sensitivity to the high-price tail. The model is exploratory and is not reliable enough for real vehicle valuation. A later-period or independent-market test is still required.
 
+
+### Holdout error by actual-price band
+
+The executed notebook also groups its untouched holdout predictions into five quantile-based actual-price bands. This is a post-hoc diagnostic only; it does not affect training or model selection.
+
+| Actual price band | Listings | Median actual price | MAE | RMSE | WAPE |
+|---|---:|---:|---:|---:|---:|
+| 2,500–15,000 | 166 | 9,995 | 4,617.00 | 5,916.62 | 47.60% |
+| 15,000–25,993.60 | 155 | 19,995 | 6,283.96 | 10,224.71 | 31.23% |
+| 25,993.60–37,930 | 160 | 31,250 | 9,411.14 | 13,407.80 | 29.80% |
+| 37,930–55,799.20 | 160 | 44,998.50 | 11,367.71 | 23,636.35 | 24.83% |
+| 55,799.20–2,954,083 | 161 | 79,999 | 62,133.66 | 278,727.01 | 43.89% |
+
+The highest-price band has much larger absolute errors. It contains a maximum observed holdout price of 2,954,083, so the RMSE is highly sensitive to this upper tail. However, errors also increase across the middle price bands. The issue is therefore broader than one extreme record. The diagnostic does not prove the high-price values are invalid; do not remove them without checking the source listings.
+
+The price bands and the full executed notebook are included in the artifact for CI run [44713634977](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/44713634977). The workflow completed successfully after this diagnostic was added.
+
 The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected. The reported figures above were extracted from the successful workflow artifact for commit `7ff776aa43b9163902a1db9e906a2b8bbc929535`.
 
 The folds are shuffled random splits with a fixed seed and use only the 80% training split. This estimates performance on similar records from the same source. It does not establish performance on a different market, later time period, or independent dataset.
