@@ -73,9 +73,9 @@ The executed notebook also groups its untouched holdout predictions into five qu
 
 The highest-price band has much larger absolute errors. It contains a maximum observed holdout price of 2,954,083, so the RMSE is highly sensitive to this upper tail. However, errors also increase across the middle price bands. The issue is therefore broader than one extreme record. The diagnostic does not prove the high-price values are invalid; do not remove them without checking the source listings.
 
-The price bands and the full executed notebook are included in the artifact for CI run [44713634977](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/44713634977). The workflow completed successfully after this diagnostic was added.
+The price bands and the fully executed notebook are included in the artifact for the latest verified CI run [44714254582](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/44714254582). This run completed successfully for commit [`0513944cc8c3bd1bd3849f673dfc18675014ec5c`](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/commit/0513944cc8c3bd1bd3849f673dfc18675014ec5c).
 
-The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected. The reported figures above were extracted from the successful workflow artifact for commit `7ff776aa43b9163902a1db9e906a2b8bbc929535`.
+The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected. The metrics and price-band diagnostics above are documented from that latest successful run.
 
 The folds are shuffled random splits with a fixed seed and use only the 80% training split. This estimates performance on similar records from the same source. It does not establish performance on a different market, later time period, or independent dataset.
 
