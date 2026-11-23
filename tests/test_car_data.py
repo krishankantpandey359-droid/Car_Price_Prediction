@@ -100,3 +100,9 @@ def test_clean_cars_with_audit_reports_duplicate_source_rows_separately(raw_cars
     assert audit["retained_rows"] == 3
     assert audit["duplicate_source_rows"] == 1
     assert len(cleaned) == 3
+
+
+def test_validate_raw_cars_rejects_duplicate_column_names(raw_cars):
+    raw_cars.columns = list(raw_cars.columns[:-1]) + ["brand"]
+    with pytest.raises(ValueError, match="duplicate column names"):
+        validate_raw_cars(raw_cars)
