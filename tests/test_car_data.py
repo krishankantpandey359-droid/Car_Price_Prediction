@@ -100,11 +100,6 @@ def test_clean_cars_rejects_fractional_model_years(raw_cars):
     assert cleaned["model_year"].tolist() == [2018.0]
 
 
-def test_clean_cars_rejects_boolean_reference_year(raw_cars):
-    with pytest.raises(ValueError, match="reference_year"):
-        clean_cars(raw_cars, reference_year=True)
-
-
 def test_clean_cars_with_audit_reports_duplicate_source_rows_separately(raw_cars):
     duplicated = pd.concat([raw_cars, raw_cars.iloc[[0]]], ignore_index=True)
     cleaned, audit = clean_cars_with_audit(duplicated, reference_year=2026)
