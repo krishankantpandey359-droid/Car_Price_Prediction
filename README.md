@@ -86,6 +86,8 @@ The reusable functions in `src/car_data.py` are tested for:
 - Price and mileage parsing
 - Removal of invalid, zero and negative target prices
 - Source-data immutability
+- Duplicate-column rejection and duplicate-row diagnostics
+- Row-retention audit with invalid-target and missing-predictor counts
 - Invalid input types
 - Explicit reference-year handling for car age
 
