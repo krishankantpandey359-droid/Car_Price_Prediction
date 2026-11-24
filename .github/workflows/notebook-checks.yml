@@ -2,7 +2,7 @@ name: Car price prediction checks
 
 on:
   push:
-    branches: [main, "audit/car-price-prediction-fixes"]
+    branches: [main, "audit/**"]
   pull_request:
     branches: [main]
 
