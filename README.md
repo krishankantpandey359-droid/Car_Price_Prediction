@@ -79,6 +79,25 @@ The workflow uploads the fully executed notebook as the `car-price-executed-note
 
 The folds are shuffled random splits with a fixed seed and use only the 80% training split. This estimates performance on similar records from the same source. It does not establish performance on a different market, later time period, or independent dataset.
 
+
+### Training-only hyperparameter tuning experiment (PR branch)
+
+A 12-iteration `RandomizedSearchCV` search for Extra Trees was run on the training split only, using the same five stratified folds. All preprocessing remained inside the pipeline. The 20% holdout was not used to tune or select hyperparameters.
+
+| Measure | Result |
+|---|---:|
+| Tuned Extra Trees mean CV MAE | 11,638.73 |
+| Tuned Extra Trees mean CV RMSE | 34,357.55 |
+| Tuned Extra Trees mean CV R² | 0.633 |
+| Untouched holdout MAE | 17,500.23 |
+| Untouched holdout RMSE | 125,183.53 |
+| Untouched holdout R² | 0.1258 |
+| Holdout/CV MAE ratio | 1.504 |
+
+Selected parameters: 100 trees, `max_features=1.0`, `min_samples_leaf=1`, `min_samples_split=5`, and no maximum depth. The tune improved CV MAE compared with the untuned Extra Trees candidate (12,977.97), but holdout R² remains low and the CV-to-holdout gap remains large. This is an exploratory improvement, not a reliable pricing model.
+
+The executed notebook artifact from [workflow run #45447961434](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45447961434) contains the full CV table, selected parameters, holdout scores, and IQR diagnostics.
+
 ## Data validation tests
 
 The reusable functions in `src/car_data.py` are tested for:
