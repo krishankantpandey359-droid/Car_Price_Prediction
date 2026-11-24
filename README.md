@@ -80,6 +80,8 @@ The workflow uploads the fully executed notebook as the `car-price-executed-note
 
 The folds are shuffled random splits with a fixed seed and use only the 80% training split. This estimates performance on similar records from the same source. It does not establish performance on a different market, later time period, or independent dataset.
 
+The PR #5 tuning experiment reported training-only CV MAE 11,638.73 and untouched holdout MAE 17,500.23, RMSE 125,183.53, and R² 0.1258 in workflow run [45447961434](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45447961434). These are results from the proposed PR branch, not the current `main` implementation. The low holdout R² confirms that practical pricing reliability remains weak.
+
 ## Data validation tests
 
 The reusable functions in `src/car_data.py` are tested for:
@@ -136,4 +138,4 @@ GitHub Actions:
 
 ## Latest GitHub Actions validation
 
-Latest verified successful main-branch workflow run checked on 24 November 2026: [GitHub Actions run #45312095547](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45312095547). This run verifies the checks configured in this repository's workflow; it does not replace manual testing of features outside CI.
+Latest completed main-branch workflow before this README correction: [GitHub Actions run #45312095547](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45312095547). A subsequent main-branch documentation workflow is being checked separately; this run verifies only the tests configured in CI.
