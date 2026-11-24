@@ -123,3 +123,34 @@ def clean_cars_with_audit(
         ) if len(frame) else 0.0,
     }
     return cleaned, audit
+
+
+def summarize_price_distribution(frame: pd.DataFrame, target_column: str = "price") -> dict:
+    """Describe price spread and flag IQR extremes without dropping any records."""
+    if not isinstance(frame, pd.DataFrame):
+        raise TypeError("Expected a pandas DataFrame.")
+    if target_column not in frame.columns:
+        raise ValueError(f"Missing target column: {target_column}")
+    values = pd.to_numeric(frame[target_column], errors="coerce")
+    values = values[np.isfinite(values)].dropna()
+    if values.empty:
+        raise ValueError("No finite prices are available for distribution analysis.")
+    q1 = float(values.quantile(0.25))
+    median = float(values.median())
+    q3 = float(values.quantile(0.75))
+    iqr = q3 - q1
+    lower_fence = q1 - 1.5 * iqr
+    upper_fence = q3 + 1.5 * iqr
+    return {
+        "count": int(values.size),
+        "minimum": float(values.min()),
+        "q1": q1,
+        "median": median,
+        "q3": q3,
+        "maximum": float(values.max()),
+        "iqr_lower_fence": float(lower_fence),
+        "iqr_upper_fence": float(upper_fence),
+        "iqr_flagged_count": int(((values < lower_fence) | (values > upper_fence)).sum()),
+        "iqr_flagged_percent": float(100 * ((values < lower_fence) | (values > upper_fence)).mean()),
+    }
+
