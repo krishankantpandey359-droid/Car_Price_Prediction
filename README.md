@@ -19,9 +19,10 @@ This project uses the public [Used Car Price Prediction Dataset by Taeef Najib o
 4. Create a car-age feature.
 5. Split data into training and test sets (80/20, random state 42).
 6. Fit imputation and one-hot encoding inside scikit-learn pipelines. Imputers are fitted on each training partition, including each cross-validation fold.
-7. Define a median-price baseline, Linear Regression, Random Forest, and Extra Trees candidates, including log-target tree variants.
+7. Define a median-price baseline, Linear Regression, Random Forest, Extra Trees, and log-target tree candidates.
 8. Compare candidates using shuffled five-fold cross-validation on the training split only.
-9. Select a candidate using training-only CV MAE, then evaluate it once on the untouched 20% holdout set.
+9. Run a 12-iteration randomized Extra Trees hyperparameter search using only training data and the same folds.
+10. Select the candidate using training-only CV MAE, then evaluate it once on the untouched 20% holdout set.
 10. Report MAE, RMSE and R² and inspect residuals, predictions and feature importance.
 
 ## Saved single-split baseline results
@@ -39,7 +40,7 @@ Random Forest performed better in this saved run, but an R² of 0.1113 indicates
 
 The notebook compares a median-price baseline, Linear Regression, Random Forest, Extra Trees, and log-target tree variants using five-fold validation on the training split. The 20% holdout is kept separate from model selection. Price-quantile stratification is used for both the initial holdout split and the training-only folds so that low-, middle-, and high-priced listings are represented.
 
-Latest verified CI results from the 4,009-row source dataset:
+Baseline CI results from the pre-tuning 4,009-row source run:
 
 | Model | CV MAE | CV RMSE | CV R² |
 |---|---:|---:|---:|
@@ -73,7 +74,7 @@ The executed notebook also groups its untouched holdout predictions into five qu
 
 The highest-price band has much larger absolute errors. It contains a maximum observed holdout price of 2,954,083, so the RMSE is highly sensitive to this upper tail. However, errors also increase across the middle price bands. The issue is therefore broader than one extreme record. The diagnostic does not prove the high-price values are invalid; do not remove them without checking the source listings.
 
-The price bands and the fully executed notebook are included in the artifact for the latest verified CI run [44714254582](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/44714254582). This run completed successfully for commit [`0513944cc8c3bd1bd3849f673dfc18675014ec5c`](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/commit/0513944cc8c3bd1bd3849f673dfc18675014ec5c).
+The price bands and the fully executed notebook in this table are from the pre-tuning CI run [44714254582](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/44714254582), commit [`0513944cc8c3bd1bd3849f673dfc18675014ec5c`](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/commit/0513944cc8c3bd1bd3849f673dfc18675014ec5c). The added tuning experiment requires its own separately reported CV and holdout metrics; do not reuse these baseline results as tuning results.
 
 The workflow uploads the fully executed notebook as the `car-price-executed-notebook` artifact, so the generated tables, residual charts and selected-model feature-importance plot can be inspected. The metrics and price-band diagnostics above are documented from that latest successful run.
 
