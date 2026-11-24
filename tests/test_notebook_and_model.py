@@ -85,3 +85,24 @@ def test_car_price_pipeline_trains_and_returns_finite_metrics():
     assert prediction.shape == y_test.shape
     assert np.isfinite(metrics).all()
     assert np.isfinite(prediction).all()
+
+def test_price_distribution_audit_flags_extremes_without_mutating_rows():
+    from src.car_data import summarize_price_distribution
+
+    frame = pd.DataFrame({"price": [10, 11, 12, 13, 14, 1000]})
+    before = frame.copy(deep=True)
+    audit = summarize_price_distribution(frame)
+    assert audit["count"] == 6
+    assert audit["maximum"] == 1000
+    assert audit["iqr_flagged_count"] == 1
+    pd.testing.assert_frame_equal(frame, before)
+
+
+def test_price_distribution_audit_rejects_empty_or_missing_target():
+    from src.car_data import summarize_price_distribution
+
+    with pytest.raises(ValueError, match="Missing target"):
+        summarize_price_distribution(pd.DataFrame({"value": [1]}))
+    with pytest.raises(ValueError, match="No finite prices"):
+        summarize_price_distribution(pd.DataFrame({"price": [np.nan, np.inf]}))
+
