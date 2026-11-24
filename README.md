@@ -132,3 +132,7 @@ GitHub Actions:
 - Compare candidates using the same folds and preprocessing, then validate the selected model on an independent dataset or later time period.
 - Evaluate on a genuinely independent dataset or later time period before making practical pricing claims.
 - Investigate the cross-validation to holdout performance gap, using a chronological or external validation set where available.
+
+## Latest GitHub Actions validation
+
+Latest verified successful main-branch workflow run checked on 24 November 2026: [GitHub Actions run #45312095547](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45312095547). This run verifies the checks configured in this repository's workflow; it does not replace manual testing of features outside CI.
