@@ -82,6 +82,24 @@ The folds are shuffled random splits with a fixed seed and use only the 80% trai
 
 The PR #5 tuning experiment reported training-only CV MAE 11,638.73 and untouched holdout MAE 17,500.23, RMSE 125,183.53, and R² 0.1258 in workflow run [45447961434](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45447961434). These are results from the proposed PR branch, not the current `main` implementation. The low holdout R² confirms that practical pricing reliability remains weak.
 
+## Training-only Extra Trees hyperparameter tuning
+
+The notebook performs a 12-iteration `RandomizedSearchCV` search for Extra Trees on the training split only, using the same five stratified folds as the candidate comparison. Preprocessing remains inside the pipeline. The untouched 20% holdout is not used for tuning or model selection.
+
+| Measure | Result |
+|---|---:|
+| Tuned Extra Trees mean CV MAE | 11,638.73 |
+| Tuned Extra Trees mean CV RMSE | 34,357.55 |
+| Tuned Extra Trees mean CV R² | 0.633 |
+| Untouched holdout MAE | 17,500.23 |
+| Untouched holdout RMSE | 125,183.53 |
+| Untouched holdout R² | 0.1258 |
+| Holdout/CV MAE ratio | 1.504 |
+
+Selected parameters: 100 trees, `max_features=1.0`, `min_samples_leaf=1`, `min_samples_split=5`, and no maximum depth.
+
+This tuning improved CV MAE compared with the untuned Extra Trees candidate (12,977.97), but holdout R² remains low and the CV-to-holdout gap remains large. It is an exploratory model, not a reliable pricing tool. The upper-price tail contributes to the high RMSE, but high-price records must not be removed without source verification.
+
 ## Data validation tests
 
 The reusable functions in `src/car_data.py` are tested for:
