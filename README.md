@@ -156,4 +156,4 @@ GitHub Actions:
 
 ## Latest GitHub Actions validation
 
-Latest completed main-branch workflow before this README correction: [GitHub Actions run #45312095547](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45312095547). A subsequent main-branch documentation workflow is being checked separately; this run verifies only the tests configured in CI.
+Latest successful main-branch notebook workflow checked on 26 November 2026: [GitHub Actions run #45795018202](https://github.com/krishankantpandey359-droid/Car_Price_Prediction/actions/runs/45795018202). This run executed the updated notebook, reusable validation tests, and notebook-structure checks.
